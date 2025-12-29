@@ -1,16 +1,16 @@
 module Api
   module V1
     class SubscriptionsController < ApplicationController
-      before_action :authenticate_user!
+      before_action :authenticate_request
       before_action :set_subscription, only: [:update]
       
       def current
-        subscription = current_user.subscriptions.where(status: ['active', 'paused']).last
+        subscription = @current_user.subscriptions.active.first
         
         if subscription
-          render json: { subscription: subscription }
+          render json: subscription
         else
-          head :not_found
+          render json: { error: 'No active subscription' }, status: 404
         end
       end
       

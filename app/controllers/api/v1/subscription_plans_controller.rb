@@ -1,12 +1,11 @@
 module Api
   module V1
-    class SubscriptionPlansController < ApplicationController
-      skip_before_action :authenticate_user!, only: [:index]
-      
-      def index
-        plans = SubscriptionPlan.active.order(:price_cents)
-        render json: { plans: plans }
+      class Api::V1::SubscriptionPlansController < ApplicationController
+        # Remove the skip_before_action line entirely
+        
+        def index
+          # ...
+        end
       end
-    end
   end
 end

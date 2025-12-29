@@ -1,12 +1,8 @@
-module Api
-  module V1
-      class Api::V1::SubscriptionPlansController < ApplicationController
-          before_action :authenticate_request
-        # Remove the skip_before_action line entirely
-        
-        def index
-          # ...
-        end
-      end
+class Api::V1::SubscriptionPlansController < ApplicationController
+  skip_before_action :authenticate_request  # Plans should be public anyway
+  
+  def index
+    plans = SubscriptionPlan.where(is_active: true)
+    render json: { plans: plans }
   end
 end

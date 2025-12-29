@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_28_221142) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_29_184940) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -28,6 +28,29 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_28_221142) do
     t.datetime "updated_at", null: false
     t.index ["user_id", "is_default"], name: "index_addresses_on_user_id_and_is_default"
     t.index ["user_id"], name: "index_addresses_on_user_id"
+  end
+
+  create_table "invoices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "subscription_id"
+    t.uuid "order_id"
+    t.string "stripe_invoice_id"
+    t.string "invoice_number"
+    t.integer "amount_cents", null: false
+    t.integer "tax_cents", default: 0
+    t.integer "total_cents", null: false
+    t.string "status", null: false
+    t.text "description"
+    t.datetime "paid_at"
+    t.date "due_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invoice_number"], name: "index_invoices_on_invoice_number", unique: true
+    t.index ["order_id"], name: "index_invoices_on_order_id"
+    t.index ["stripe_invoice_id"], name: "index_invoices_on_stripe_invoice_id", unique: true
+    t.index ["subscription_id"], name: "index_invoices_on_subscription_id"
+    t.index ["user_id", "status"], name: "index_invoices_on_user_id_and_status"
+    t.index ["user_id"], name: "index_invoices_on_user_id"
   end
 
   create_table "laundry_preferences", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -187,6 +210,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_28_221142) do
   end
 
   add_foreign_key "addresses", "users"
+  add_foreign_key "invoices", "orders"
+  add_foreign_key "invoices", "subscriptions"
+  add_foreign_key "invoices", "users"
   add_foreign_key "laundry_preferences", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "order_issues", "orders"

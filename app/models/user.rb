@@ -11,8 +11,12 @@ class User < ApplicationRecord
   has_many :orders, dependent: :destroy
   has_many :payment_methods, dependent: :destroy
   has_many :notifications, dependent: :destroy
+  has_many :payment_methods, dependent: :destroy
+  has_many :subscriptions, dependent: :destroy
+  has_many :invoices, dependent: :destroy
   has_one :laundry_preference, dependent: :destroy
   has_one :subscription, dependent: :destroy
+  
 
   # Validations
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -36,5 +40,9 @@ class User < ApplicationRecord
       water_temperature: :warm,
       dry_method: :machine
     )
+  end
+  
+  def active_subscription
+    subscriptions.where(status: ['active', 'paused']).last
   end
 end

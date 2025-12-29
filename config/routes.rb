@@ -32,6 +32,25 @@ Rails.application.routes.draw do
       # Scheduling (NEW)
       get 'scheduling/available-dates', to: 'scheduling#available_dates'
       get 'scheduling/available-time-windows', to: 'scheduling#available_time_windows'
+      
+      # Phase 3: Payments & Subscriptions
+      get '/subscription-plans', to: 'subscription_plans#index'
+      
+      resources :payment_methods, only: [:index, :create, :destroy] do
+        member do
+          post :set_default
+        end
+      end
+      
+      resources :subscriptions, only: [:create, :update] do
+        collection do
+          get :current
+        end
+      end
+      
+      namespace :billing do
+        resources :invoices, only: [:index, :show]
+      end
     end
   end
   

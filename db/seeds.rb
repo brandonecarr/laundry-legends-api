@@ -1,4 +1,4 @@
-# db/seeds.rb
+    # db/seeds.rb
 
 puts "🌱 Seeding database..."
 
@@ -100,12 +100,12 @@ puts "✅ Laundry preferences auto-created"
 subscription = Subscription.create!(
   user: test_user,
   subscription_plan: SubscriptionPlan.find_by(name: "Premium"),
-  status: :active,
+  status: :active,  # ← Symbol works with enum
   bags_used_this_period: 2,
   current_period_start: Date.today,
   current_period_end: Date.today + 30.days,
   auto_recurring: true,
-  recurring_day: 4, # Thursday
+  recurring_day: 4,
   recurring_time_window_id: TimeWindow.first.id
 )
 
@@ -276,6 +276,34 @@ User.find_or_create_by!(email: 'admin@laundrylegends.com') do |user|
 end
 
 puts "✅ Created test users"
+
+puts "Creating subscription plans..."
+
+SubscriptionPlan.create!([
+  {
+    name: "Basic",
+    bags_per_month: 2,
+    price_cents: 7900,
+    description: "2 bags per month",
+    is_active: true
+  },
+  {
+    name: "Premium",
+    bags_per_month: 4,
+    price_cents: 12900,
+    description: "4 bags per month",
+    is_active: true
+  },
+  {
+    name: "Pro",
+    bags_per_month: 8,
+    price_cents: 22900,
+    description: "8 bags per month",
+    is_active: true
+  }
+])
+
+puts "✅ Created #{SubscriptionPlan.count} subscription plans"
 
 # ========================================
 # SUMMARY

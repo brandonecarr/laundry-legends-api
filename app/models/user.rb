@@ -11,7 +11,6 @@ class User < ApplicationRecord
   has_many :orders, dependent: :destroy
   has_many :payment_methods, dependent: :destroy
   has_many :notifications, dependent: :destroy
-  has_many :subscriptions, dependent: :destroy
   has_many :invoices, dependent: :destroy
   has_many :device_tokens, dependent: :destroy
   has_many :notification_logs, dependent: :destroy
@@ -66,9 +65,5 @@ class User < ApplicationRecord
       water_temperature: :warm,
       dry_method: :machine
     )
-  end
-
-  def active_subscription
-    subscriptions.where(status: ['active', 'paused']).last
   end
 end

@@ -63,20 +63,32 @@ module Api
         user = User.find_by(stripe_customer_id: subscription.customer)
         return unless user
 
-        user_subscription = user.subscriptions.find_by(stripe_subscription_id: subscription.id)
-        return if user_subscription  # Already exists
+        # Check if subscription already exists
+        existing = user.subscription
+        return if existing&.stripe_subscription_id == subscription.id
 
         # Find plan based on price (you may need to adjust this logic)
         plan = SubscriptionPlan.find_by(is_active: true)
         return unless plan
 
-        user.subscriptions.create!(
-          subscription_plan: plan,
-          stripe_subscription_id: subscription.id,
-          status: subscription_status_to_enum(subscription.status),
-          current_period_start: Time.at(subscription.current_period_start).to_date,
-          current_period_end: Time.at(subscription.current_period_end).to_date
-        )
+        if existing
+          # Update existing subscription record
+          existing.update!(
+            subscription_plan: plan,
+            stripe_subscription_id: subscription.id,
+            status: subscription_status_to_enum(subscription.status),
+            current_period_start: Time.at(subscription.current_period_start).to_date,
+            current_period_end: Time.at(subscription.current_period_end).to_date
+          )
+        else
+          user.create_subscription!(
+            subscription_plan: plan,
+            stripe_subscription_id: subscription.id,
+            status: subscription_status_to_enum(subscription.status),
+            current_period_start: Time.at(subscription.current_period_start).to_date,
+            current_period_end: Time.at(subscription.current_period_end).to_date
+          )
+        end
       end
 
       def handle_subscription_updated(subscription)
@@ -113,7 +125,7 @@ module Api
           existing_invoice.update!(status: 'paid', paid_at: Time.current)
         else
           # Find subscription if this is a subscription invoice
-          subscription = user.subscriptions.find_by(stripe_subscription_id: invoice.subscription)
+          subscription = user.subscription if invoice.subscription && user.subscription&.stripe_subscription_id == invoice.subscription
 
           user.invoices.create!(
             stripe_invoice_id: invoice.id,
@@ -129,9 +141,8 @@ module Api
         end
 
         # Reset bags_used_this_period if this is a subscription renewal
-        if invoice.subscription
-          subscription = user.subscriptions.find_by(stripe_subscription_id: invoice.subscription)
-          subscription&.update!(bags_used_this_period: 0)
+        if invoice.subscription && user.subscription&.stripe_subscription_id == invoice.subscription
+          user.subscription.update!(bags_used_this_period: 0)
         end
       end
 
@@ -146,7 +157,7 @@ module Api
         if existing_invoice
           existing_invoice.update!(status: 'failed')
         else
-          subscription = user.subscriptions.find_by(stripe_subscription_id: invoice.subscription)
+          subscription = user.subscription if invoice.subscription && user.subscription&.stripe_subscription_id == invoice.subscription
 
           user.invoices.create!(
             stripe_invoice_id: invoice.id,
@@ -160,12 +171,14 @@ module Api
           )
         end
 
-        # Send notification about failed payment
-        SendNotificationJob.perform_later(
-          user_id: user.id,
-          notification_type: 'payment_failed',
-          channels: [:push, :sms]
-        )
+        # Send notification about failed payment (if job exists)
+        if defined?(SendNotificationJob)
+          SendNotificationJob.perform_later(
+            user_id: user.id,
+            notification_type: 'payment_failed',
+            channels: [:push, :sms]
+          )
+        end
       end
 
       def subscription_status_to_enum(stripe_status)

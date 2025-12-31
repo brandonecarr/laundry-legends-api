@@ -5,9 +5,9 @@ module Api
       before_action :set_subscription, only: [:update]
 
       def current
-        subscription = current_user.subscriptions.where(status: [:active, :paused]).first
+        subscription = current_user.subscription
 
-        if subscription
+        if subscription && subscription.status.in?(%w[active paused])
           render json: subscription
         else
           render json: { error: 'No active subscription' }, status: 404
@@ -15,6 +15,13 @@ module Api
       end
 
       def create
+        # Check if user already has an active subscription
+        existing = current_user.subscription
+        if existing && existing.status.in?(%w[active paused])
+          render json: { error: 'You already have an active subscription. Please cancel it first.' }, status: :unprocessable_entity
+          return
+        end
+
         plan = SubscriptionPlan.find(params[:plan_id])
         payment_method_id = params[:payment_method_id]
 
@@ -40,8 +47,8 @@ module Api
           }
         )
 
-        # Create local subscription record
-        subscription = current_user.subscriptions.create!(
+        # Create or update local subscription record
+        subscription_attrs = {
           subscription_plan: plan,
           stripe_subscription_id: stripe_subscription.id,
           status: subscription_status_from_stripe(stripe_subscription.status),
@@ -51,16 +58,33 @@ module Api
           auto_recurring: params.dig(:auto_recurring, :enabled) || false,
           recurring_day: params.dig(:auto_recurring, :day_of_week),
           recurring_time_window_id: params.dig(:auto_recurring, :time_window_id)
-        )
+        }
+
+        # If user has an old canceled subscription, update it. Otherwise create new.
+        if existing
+          existing.update!(subscription_attrs)
+          subscription = existing
+        else
+          subscription = current_user.create_subscription!(subscription_attrs)
+        end
 
         render json: { subscription: subscription }, status: :created
 
       rescue ActiveRecord::RecordNotFound => e
         render json: { error: 'Subscription plan not found' }, status: :not_found
       rescue Stripe::InvalidRequestError => e
+        Rails.logger.error "Stripe InvalidRequestError: #{e.message}"
         render json: { error: e.message }, status: :unprocessable_entity
       rescue Stripe::CardError => e
+        Rails.logger.error "Stripe CardError: #{e.message}"
         render json: { error: e.message }, status: :unprocessable_entity
+      rescue ActiveRecord::RecordInvalid => e
+        Rails.logger.error "RecordInvalid: #{e.message}"
+        render json: { error: e.message }, status: :unprocessable_entity
+      rescue StandardError => e
+        Rails.logger.error "Subscription creation error: #{e.class} - #{e.message}"
+        Rails.logger.error e.backtrace.first(10).join("\n")
+        render json: { error: 'Failed to create subscription. Please try again.' }, status: :internal_server_error
       end
 
       def update
@@ -91,7 +115,8 @@ module Api
       private
 
       def set_subscription
-        @subscription = current_user.subscriptions.find(params[:id])
+        @subscription = current_user.subscription
+        raise ActiveRecord::RecordNotFound unless @subscription && @subscription.id.to_s == params[:id]
       end
 
       def subscription_params

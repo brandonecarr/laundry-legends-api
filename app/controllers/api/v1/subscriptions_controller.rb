@@ -26,15 +26,13 @@ module Api
         # Ensure user has a Stripe customer
         customer_id = current_user.get_or_create_stripe_customer
 
+        # Get or create Stripe price for the plan
+        stripe_price_id = get_or_create_stripe_price(plan)
+
         # Create Stripe subscription
         stripe_subscription = Stripe::Subscription.create(
           customer: customer_id,
-          items: [{ price_data: {
-            currency: 'usd',
-            product_data: { name: plan.name },
-            unit_amount: plan.price_cents,
-            recurring: { interval: 'month' }
-          }}],
+          items: [{ price: stripe_price_id }],
           default_payment_method: payment_method_id,
           metadata: {
             user_id: current_user.id,
@@ -117,6 +115,33 @@ module Api
         else
           :active
         end
+      end
+
+      def get_or_create_stripe_price(plan)
+        # Return existing price if available
+        return plan.stripe_price_id if plan.stripe_price_id.present?
+
+        # Create Stripe product if needed
+        if plan.stripe_product_id.blank?
+          product = Stripe::Product.create(
+            name: plan.name,
+            description: plan.description || "#{plan.bags_per_month} bags per month",
+            metadata: { plan_id: plan.id }
+          )
+          plan.update!(stripe_product_id: product.id)
+        end
+
+        # Create Stripe price
+        price = Stripe::Price.create(
+          product: plan.stripe_product_id,
+          unit_amount: plan.price_cents,
+          currency: 'usd',
+          recurring: { interval: 'month' },
+          metadata: { plan_id: plan.id }
+        )
+
+        plan.update!(stripe_price_id: price.id)
+        price.id
       end
     end
   end

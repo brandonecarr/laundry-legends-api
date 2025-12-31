@@ -59,4 +59,7 @@ class ApplicationController < ActionController::API
   def current_user!
     @current_user || raise(StandardError, 'No current user')
   end
+
+  # Alias for consistency with other Rails conventions
+  alias_method :authenticate_user!, :authenticate_request
 end

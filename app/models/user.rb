@@ -17,7 +17,7 @@ class User < ApplicationRecord
   has_many :notification_logs, dependent: :destroy
   has_one :laundry_preference, dependent: :destroy
   has_one :subscription, dependent: :destroy
-  
+
 
   # Validations
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -33,6 +33,31 @@ class User < ApplicationRecord
     "#{first_name} #{last_name}"
   end
 
+  # Stripe Methods
+  def get_or_create_stripe_customer
+    return stripe_customer_id if stripe_customer_id.present?
+
+    customer = Stripe::Customer.create(
+      email: email,
+      name: full_name,
+      metadata: { user_id: id }
+    )
+
+    update!(stripe_customer_id: customer.id)
+    customer.id
+  end
+
+  def stripe_customer
+    return nil unless stripe_customer_id.present?
+    Stripe::Customer.retrieve(stripe_customer_id)
+  rescue Stripe::InvalidRequestError
+    nil
+  end
+
+  def default_payment_method
+    payment_methods.find_by(is_default: true) || payment_methods.first
+  end
+
   private
 
   def create_default_preference
@@ -42,7 +67,7 @@ class User < ApplicationRecord
       dry_method: :machine
     )
   end
-  
+
   def active_subscription
     subscriptions.where(status: ['active', 'paused']).last
   end

@@ -97,8 +97,15 @@ Rails.application.routes.draw do
       # Device tokens for push notifications
       post 'device-tokens', to: 'device_tokens#create'
       delete 'device-tokens', to: 'device_tokens#destroy'
+
+      # Stripe endpoints
+      get 'stripe/publishable-key', to: 'stripe#publishable_key'
+      post 'stripe/setup-intent', to: 'stripe#create_setup_intent'
     end
+
+    # Stripe webhooks (outside v1 namespace, no auth)
+    post 'webhooks/stripe', to: 'v1/webhooks#stripe'
   end
-  
+
   get 'health', to: proc { [200, {}, ['OK']] }
 end

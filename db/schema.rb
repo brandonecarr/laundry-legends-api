@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_31_000735) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_31_014304) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -190,12 +190,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_31_000735) do
   create_table "payment_methods", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
     t.string "stripe_payment_method_id", null: false
-    t.integer "payment_type", null: false
+    t.string "payment_type", null: false
     t.string "last_four", null: false
     t.string "brand"
     t.boolean "is_default", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "expiry_month"
+    t.integer "expiry_year"
+    t.string "funding"
     t.index ["stripe_payment_method_id"], name: "index_payment_methods_on_stripe_payment_method_id", unique: true
     t.index ["user_id", "is_default"], name: "index_payment_methods_on_user_id_and_is_default"
     t.index ["user_id"], name: "index_payment_methods_on_user_id"
@@ -261,8 +264,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_31_000735) do
     t.string "device_token"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "stripe_customer_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["role"], name: "index_users_on_role"
+    t.index ["stripe_customer_id"], name: "index_users_on_stripe_customer_id", unique: true
   end
 
   add_foreign_key "addresses", "users"

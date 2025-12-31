@@ -9,14 +9,23 @@ module Api
       # POST /api/v1/auth/register
       def register
         user = User.new(user_params)
-        user.role = :customer
         
-        if user.save
-          tokens = generate_tokens(user)
+        if user.save  # ← Make sure this actually saves to DB
+          # Create laundry preferences for new user
+          user.create_laundry_preference!(
+            detergent_type: 'standard',
+            water_temperature: 'warm',
+            dry_method: 'machine',
+            # ... defaults
+          )
+          
+          access_token = generate_token(user)
+          refresh_token = generate_refresh_token(user)
+          
           render json: {
-            user: user_json(user),
-            access_token: tokens[:access_token],
-            refresh_token: tokens[:refresh_token]
+            user: user.as_json,
+            access_token: access_token,
+            refresh_token: refresh_token
           }, status: :created
         else
           render json: { errors: user.errors.full_messages }, status: :unprocessable_entity

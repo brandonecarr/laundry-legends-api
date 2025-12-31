@@ -16,7 +16,12 @@ module Api
 
       def create
         plan = SubscriptionPlan.find(params[:plan_id])
-        payment_method = current_user.payment_methods.find(params[:payment_method_id])
+        payment_method_id = params[:payment_method_id]
+
+        if payment_method_id.blank?
+          render json: { error: 'Payment method ID is required' }, status: :bad_request
+          return
+        end
 
         # Ensure user has a Stripe customer
         customer_id = current_user.get_or_create_stripe_customer
@@ -30,7 +35,7 @@ module Api
             unit_amount: plan.price_cents,
             recurring: { interval: 'month' }
           }}],
-          default_payment_method: payment_method.stripe_payment_method_id,
+          default_payment_method: payment_method_id,
           metadata: {
             user_id: current_user.id,
             plan_id: plan.id
@@ -52,6 +57,8 @@ module Api
 
         render json: { subscription: subscription }, status: :created
 
+      rescue ActiveRecord::RecordNotFound => e
+        render json: { error: 'Subscription plan not found' }, status: :not_found
       rescue Stripe::InvalidRequestError => e
         render json: { error: e.message }, status: :unprocessable_entity
       rescue Stripe::CardError => e

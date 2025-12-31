@@ -26,6 +26,7 @@ module Api
         formatted_methods = payment_methods.data.map do |pm|
           {
             id: pm.id,
+            user_id: current_user.id,
             type: 'card',
             card: {
               brand: pm.card.brand,
@@ -34,7 +35,8 @@ module Api
               expiry_year: pm.card.exp_year,
               funding: pm.card.funding
             },
-            is_default: pm.id == default_pm_id
+            is_default: pm.id == default_pm_id,
+            created_at: pm.created ? Time.at(pm.created).iso8601 : nil
           }
         end
 
@@ -72,6 +74,7 @@ module Api
         # Return formatted payment method
         formatted = {
           id: payment_method.id,
+          user_id: current_user.id,
           type: 'card',
           card: {
             brand: payment_method.card.brand,
@@ -80,7 +83,8 @@ module Api
             expiry_year: payment_method.card.exp_year,
             funding: payment_method.card.funding
           },
-          is_default: params[:set_as_default] || params[:setAsDefault] || false
+          is_default: params[:set_as_default] || params[:setAsDefault] || false,
+          created_at: payment_method.created ? Time.at(payment_method.created).iso8601 : Time.current.iso8601
         }
 
         render json: { payment_method: formatted }, status: :created

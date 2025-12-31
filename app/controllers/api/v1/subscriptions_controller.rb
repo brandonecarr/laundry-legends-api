@@ -47,14 +47,19 @@ module Api
           }
         )
 
+        # Extract period dates from subscription item (Stripe's newer API structure)
+        subscription_item = stripe_subscription.items.data.first
+        period_start = subscription_item&.current_period_start || stripe_subscription.start_date
+        period_end = subscription_item&.current_period_end || (Time.at(period_start) + 1.month).to_i
+
         # Create or update local subscription record
         subscription_attrs = {
           subscription_plan: plan,
           stripe_subscription_id: stripe_subscription.id,
           status: subscription_status_from_stripe(stripe_subscription.status),
           bags_used_this_period: 0,
-          current_period_start: Time.at(stripe_subscription.current_period_start).to_date,
-          current_period_end: Time.at(stripe_subscription.current_period_end).to_date,
+          current_period_start: Time.at(period_start).to_date,
+          current_period_end: Time.at(period_end).to_date,
           auto_recurring: params.dig(:auto_recurring, :enabled) || false,
           recurring_day: params.dig(:auto_recurring, :day_of_week),
           recurring_time_window_id: params.dig(:auto_recurring, :time_window_id)

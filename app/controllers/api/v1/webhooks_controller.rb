@@ -71,22 +71,25 @@ module Api
         plan = SubscriptionPlan.find_by(is_active: true)
         return unless plan
 
+        # Extract period dates from subscription item
+        period_start, period_end = extract_period_dates(subscription)
+
         if existing
           # Update existing subscription record
           existing.update!(
             subscription_plan: plan,
             stripe_subscription_id: subscription.id,
             status: subscription_status_to_enum(subscription.status),
-            current_period_start: Time.at(subscription.current_period_start).to_date,
-            current_period_end: Time.at(subscription.current_period_end).to_date
+            current_period_start: period_start,
+            current_period_end: period_end
           )
         else
           user.create_subscription!(
             subscription_plan: plan,
             stripe_subscription_id: subscription.id,
             status: subscription_status_to_enum(subscription.status),
-            current_period_start: Time.at(subscription.current_period_start).to_date,
-            current_period_end: Time.at(subscription.current_period_end).to_date
+            current_period_start: period_start,
+            current_period_end: period_end
           )
         end
       end
@@ -97,10 +100,13 @@ module Api
         user_subscription = Subscription.find_by(stripe_subscription_id: subscription.id)
         return unless user_subscription
 
+        # Extract period dates from subscription item
+        period_start, period_end = extract_period_dates(subscription)
+
         user_subscription.update!(
           status: subscription_status_to_enum(subscription.status),
-          current_period_start: Time.at(subscription.current_period_start).to_date,
-          current_period_end: Time.at(subscription.current_period_end).to_date
+          current_period_start: period_start,
+          current_period_end: period_end
         )
       end
 
@@ -192,6 +198,14 @@ module Api
         else
           :active
         end
+      end
+
+      def extract_period_dates(subscription)
+        # Stripe's newer API puts period dates on subscription items, not the subscription itself
+        item = subscription.items&.data&.first
+        start_ts = item&.current_period_start || subscription.start_date || Time.current.to_i
+        end_ts = item&.current_period_end || (Time.at(start_ts) + 1.month).to_i
+        [Time.at(start_ts).to_date, Time.at(end_ts).to_date]
       end
     end
   end

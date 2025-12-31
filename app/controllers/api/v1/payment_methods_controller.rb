@@ -1,100 +1,120 @@
+# app/controllers/api/v1/payment_methods_controller.rb
 module Api
   module V1
     class PaymentMethodsController < ApplicationController
       before_action :authenticate_user!
-      before_action :set_payment_method, only: [:destroy, :set_default]
-
+      
       def index
-        methods = current_user.payment_methods.order(is_default: :desc, created_at: :desc)
-        render json: { payment_methods: methods }
+        # Get Stripe customer
+        customer_id = current_user.stripe_customer_id
+        
+        if customer_id.blank?
+          render json: { payment_methods: [] }, status: :ok
+          return
+        end
+        
+        # Fetch payment methods from Stripe
+        payment_methods = Stripe::PaymentMethod.list(
+          customer: customer_id,
+          type: 'card'
+        )
+        
+        # Transform to our format
+        formatted_methods = payment_methods.data.map do |pm|
+          {
+            id: pm.id,
+            card: {
+              brand: pm.card.brand,
+              last4: pm.card.last4,
+              exp_month: pm.card.exp_month,
+              exp_year: pm.card.exp_year
+            },
+            is_default: pm.id == current_user.default_payment_method_id
+          }
+        end
+        
+        render json: { payment_methods: formatted_methods }, status: :ok
+        
+      rescue Stripe::StripeError => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
-
+      
       def create
-        # Get or create Stripe customer
-        customer_id = current_user.get_or_create_stripe_customer
-
-        # Attach the payment method to the customer
-        stripe_pm = Stripe::PaymentMethod.attach(
-          params[:payment_method_id],
-          { customer: customer_id }
-        )
-
-        # Set as default if requested or if first payment method
-        if params[:set_as_default] || current_user.payment_methods.empty?
-          Stripe::Customer.update(
-            customer_id,
-            { invoice_settings: { default_payment_method: stripe_pm.id } }
+        # Attach payment method to customer
+        token = params[:token]
+        
+        # Create or get Stripe customer
+        if current_user.stripe_customer_id.blank?
+          customer = Stripe::Customer.create(
+            email: current_user.email,
+            name: "#{current_user.first_name} #{current_user.last_name}"
           )
+          current_user.update!(stripe_customer_id: customer.id)
         end
-
-        # Create local payment method record
-        payment_method = current_user.payment_methods.create!(
-          stripe_payment_method_id: stripe_pm.id,
-          payment_type: stripe_pm.type,
-          brand: stripe_pm.card&.brand,
-          last_four: stripe_pm.card&.last4,
-          expiry_month: stripe_pm.card&.exp_month,
-          expiry_year: stripe_pm.card&.exp_year,
-          funding: stripe_pm.card&.funding,
-          is_default: params[:set_as_default] || current_user.payment_methods.count == 1
+        
+        # Attach payment method
+        payment_method = Stripe::PaymentMethod.attach(
+          token,
+          { customer: current_user.stripe_customer_id }
         )
-
-        render json: { payment_method: payment_method }, status: :created
-
-      rescue Stripe::InvalidRequestError => e
-        render json: { error: e.message }, status: :unprocessable_entity
-      rescue Stripe::CardError => e
-        render json: { error: e.message }, status: :unprocessable_entity
-      end
-
-      def destroy
-        # Detach from Stripe
-        begin
-          Stripe::PaymentMethod.detach(@payment_method.stripe_payment_method_id)
-        rescue Stripe::InvalidRequestError => e
-          Rails.logger.warn "Failed to detach payment method from Stripe: #{e.message}"
-        end
-
-        # If deleting default, set another as default
-        was_default = @payment_method.is_default?
-        @payment_method.destroy!
-
-        if was_default
-          new_default = current_user.payment_methods.first
-          new_default&.update!(is_default: true)
-
-          # Update Stripe default if we have a new default
-          if new_default && current_user.stripe_customer_id
-            Stripe::Customer.update(
-              current_user.stripe_customer_id,
-              { invoice_settings: { default_payment_method: new_default.stripe_payment_method_id } }
-            )
-          end
-        end
-
-        render json: { message: 'Payment method deleted' }
-      end
-
-      def set_default
-        # Update Stripe default
-        if current_user.stripe_customer_id
+        
+        # Set as default if requested
+        if params[:set_as_default]
           Stripe::Customer.update(
             current_user.stripe_customer_id,
-            { invoice_settings: { default_payment_method: @payment_method.stripe_payment_method_id } }
+            invoice_settings: { default_payment_method: payment_method.id }
           )
+          current_user.update!(default_payment_method_id: payment_method.id)
         end
-
-        @payment_method.update!(is_default: true)
-        render json: { payment_method: @payment_method }
-
-      rescue Stripe::InvalidRequestError => e
+        
+        # Return formatted payment method
+        formatted = {
+          id: payment_method.id,
+          card: {
+            brand: payment_method.card.brand,
+            last4: payment_method.card.last4,
+            exp_month: payment_method.card.exp_month,
+            exp_year: payment_method.card.exp_year
+          },
+          is_default: params[:set_as_default]
+        }
+        
+        render json: { payment_method: formatted }, status: :created
+        
+      rescue Stripe::StripeError => e
         render json: { error: e.message }, status: :unprocessable_entity
       end
-
-      private
-
-      def set_payment_method
-        @payment_method = current_user.payment_methods.find(params[:id])
+      
+      def set_default
+        payment_method_id = params[:id]
+        
+        Stripe::Customer.update(
+          current_user.stripe_customer_id,
+          invoice_settings: { default_payment_method: payment_method_id }
+        )
+        
+        current_user.update!(default_payment_method_id: payment_method_id)
+        
+        render json: { message: 'Default payment method updated' }, status: :ok
+        
+      rescue Stripe::StripeError => e
+        render json: { error: e.message }, status: :unprocessable_entity
+      end
+      
+      def destroy
+        payment_method_id = params[:id]
+        
+        Stripe::PaymentMethod.detach(payment_method_id)
+        
+        # If this was default, clear it
+        if current_user.default_payment_method_id == payment_method_id
+          current_user.update!(default_payment_method_id: nil)
+        end
+        
+        render json: { message: 'Payment method deleted' }, status: :ok
+        
+      rescue Stripe::StripeError => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
     end
   end

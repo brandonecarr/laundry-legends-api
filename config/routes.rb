@@ -6,9 +6,14 @@ Rails.application.routes.draw do
     get 'login', to: 'sessions#new'
     post 'login', to: 'sessions#create'
     delete 'logout', to: 'sessions#destroy'
+    # Payment Methods
+    get 'payment-methods', to: 'payment_methods#index'
+    post 'payment-methods', to: 'payment_methods#create'
+    post 'payment-methods/:id/set-default', to: 'payment_methods#set_default'
+    delete 'payment-methods/:id', to: 'payment_methods#destroy'
 
     root 'dashboard#index'
-
+    
     resources :orders, only: [:index, :show, :edit, :update] do
       member do
         patch :update_status

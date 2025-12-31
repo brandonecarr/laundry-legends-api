@@ -36,12 +36,6 @@
             <dt class="text-sm font-medium text-gray-500">Bags Per Month</dt>
             <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= @subscription_plan.bags_per_month %></dd>
           </div>
-          <% if @subscription_plan.price_per_bag_cents %>
-            <div>
-              <dt class="text-sm font-medium text-gray-500">Additional Bag Price</dt>
-              <dd class="mt-1 text-lg font-semibold text-gray-900"><%= number_to_currency(@subscription_plan.price_per_bag_cents / 100.0) %></dd>
-            </div>
-          <% end %>
           <% if @subscription_plan.description.present? %>
             <div class="sm:col-span-2">
               <dt class="text-sm font-medium text-gray-500">Description</dt>

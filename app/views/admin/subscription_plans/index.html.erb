@@ -33,14 +33,6 @@
               </svg>
               <%= plan.bags_per_month %> bags per month
             </li>
-            <% if plan.price_per_bag_cents %>
-              <li class="flex items-center text-sm text-gray-600">
-                <svg class="mr-2 h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <%= number_to_currency(plan.price_per_bag_cents / 100.0) %> per additional bag
-              </li>
-            <% end %>
           </ul>
 
           <% if plan.description.present? %>

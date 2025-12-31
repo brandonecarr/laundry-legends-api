@@ -82,12 +82,12 @@ Rails.application.routes.draw do
       
       # Phase 3: Payments & Subscriptions
       get '/subscription-plans', to: 'subscription_plans#index'
-      
-      resources :payment_methods, only: [:index, :create, :destroy] do
-        member do
-          post :set_default
-        end
-      end
+
+      # Payment methods (hyphenated for iOS compatibility)
+      get 'payment-methods', to: 'payment_methods#index'
+      post 'payment-methods', to: 'payment_methods#create'
+      delete 'payment-methods/:id', to: 'payment_methods#destroy'
+      post 'payment-methods/:id/set-default', to: 'payment_methods#set_default'
       
       resources :subscriptions, only: [:create, :update] do
         collection do

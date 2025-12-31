@@ -1,0 +1,187 @@
+<div>
+  <div class="mb-6">
+    <%= link_to '&larr; Back to Customers'.html_safe, admin_customers_path, class: 'text-sm text-gray-500 hover:text-gray-700' %>
+  </div>
+
+  <div class="sm:flex sm:items-center sm:justify-between">
+    <div class="flex items-center">
+      <div class="h-16 w-16 rounded-full bg-[#10253F] flex items-center justify-center">
+        <span class="text-xl font-medium text-white"><%= @customer.first_name[0] %><%= @customer.last_name[0] %></span>
+      </div>
+      <div class="ml-4">
+        <h1 class="text-2xl font-semibold text-gray-900"><%= @customer.full_name %></h1>
+        <p class="text-sm text-gray-500"><%= @customer.email %></p>
+      </div>
+    </div>
+    <div class="mt-4 sm:mt-0">
+      <%= link_to 'Edit Customer', edit_admin_customer_path(@customer), class: 'inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50' %>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-4">
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Total Orders</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @total_orders %></dd>
+    </div>
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Total Spent</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= number_to_currency(@total_spent) %></dd>
+    </div>
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Member Since</dt>
+      <dd class="mt-1 text-2xl font-semibold tracking-tight text-gray-900"><%= @customer.created_at.strftime('%b %Y') %></dd>
+    </div>
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Subscription</dt>
+      <dd class="mt-1">
+        <% if @subscription&.active? %>
+          <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-sm font-medium text-green-800">
+            <%= @subscription.subscription_plan.name %>
+          </span>
+        <% elsif @subscription&.paused? %>
+          <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-sm font-medium text-yellow-800">
+            Paused
+          </span>
+        <% else %>
+          <span class="text-gray-500">No active subscription</span>
+        <% end %>
+      </dd>
+    </div>
+  </div>
+
+  <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Recent Orders -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">Recent Orders</h3>
+        </div>
+        <ul role="list" class="divide-y divide-gray-200">
+          <% @orders.each do |order| %>
+            <li class="px-4 py-4 sm:px-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <%= link_to order.formatted_order_number, admin_order_path(order), class: 'text-sm font-medium text-[#10253F] hover:underline' %>
+                  <span class="ml-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= order_status_badge_class(order.status) %>">
+                    <%= order.status.humanize %>
+                  </span>
+                </div>
+                <div class="text-sm text-gray-500">
+                  <%= order.created_at.strftime('%b %d, %Y') %>
+                </div>
+              </div>
+              <div class="mt-2 flex items-center justify-between text-sm text-gray-500">
+                <p>Pickup: <%= order.pickup_date.strftime('%b %d') %></p>
+                <p><%= order.total_cents ? number_to_currency(order.total_cents / 100.0) : '-' %></p>
+              </div>
+            </li>
+          <% end %>
+          <% if @orders.empty? %>
+            <li class="px-4 py-8 text-center text-sm text-gray-500">
+              No orders yet
+            </li>
+          <% end %>
+        </ul>
+      </div>
+
+      <!-- Issues -->
+      <% if @issues.any? %>
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Reported Issues</h3>
+          </div>
+          <ul role="list" class="divide-y divide-gray-200">
+            <% @issues.each do |issue| %>
+              <li class="px-4 py-4 sm:px-6">
+                <div class="flex items-center justify-between">
+                  <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= issue_type_badge_class(issue.issue_type) %>">
+                    <%= issue.issue_type.humanize %>
+                  </span>
+                  <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= issue_status_badge_class(issue.status) %>">
+                    <%= issue.status.humanize %>
+                  </span>
+                </div>
+                <p class="mt-2 text-sm text-gray-900 line-clamp-2"><%= issue.description %></p>
+                <p class="mt-1 text-xs text-gray-500">Order <%= issue.order.formatted_order_number %></p>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+      <!-- Contact Info -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
+        <dl class="space-y-3">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Email</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @customer.email %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Phone</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @customer.phone || 'Not provided' %></dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Subscription Details -->
+      <% if @subscription %>
+        <div class="bg-white shadow rounded-lg p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Subscription</h3>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Plan</dt>
+              <dd class="mt-1 text-sm text-gray-900"><%= @subscription.subscription_plan.name %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Status</dt>
+              <dd class="mt-1">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= subscription_status_badge_class(@subscription.status) %>">
+                  <%= @subscription.status.humanize %>
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Bags Used This Period</dt>
+              <dd class="mt-1 text-sm text-gray-900"><%= @subscription.bags_used_this_period %> / <%= @subscription.subscription_plan.bags_per_month %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Current Period</dt>
+              <dd class="mt-1 text-sm text-gray-900">
+                <%= @subscription.current_period_start.strftime('%b %d') %> - <%= @subscription.current_period_end.strftime('%b %d, %Y') %>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      <% end %>
+
+      <!-- Addresses -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Addresses</h3>
+        <% if @addresses.any? %>
+          <ul class="space-y-4">
+            <% @addresses.each do |address| %>
+              <li class="text-sm">
+                <% if address.is_default %>
+                  <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 mb-1">Default</span>
+                <% end %>
+                <p class="text-gray-900"><%= address.street_address %></p>
+                <% if address.unit_number.present? %>
+                  <p class="text-gray-900">Unit <%= address.unit_number %></p>
+                <% end %>
+                <p class="text-gray-500"><%= address.city %>, <%= address.state %> <%= address.zip_code %></p>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-sm text-gray-500">No addresses on file</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

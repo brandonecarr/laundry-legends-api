@@ -1,6 +1,48 @@
 # config/routes.rb
 
 Rails.application.routes.draw do
+  # Admin Dashboard
+  namespace :admin do
+    get 'login', to: 'sessions#new'
+    post 'login', to: 'sessions#create'
+    delete 'logout', to: 'sessions#destroy'
+
+    root 'dashboard#index'
+
+    resources :orders, only: [:index, :show, :edit, :update] do
+      member do
+        patch :update_status
+        post :send_notification
+      end
+    end
+
+    resources :customers, only: [:index, :show, :edit, :update]
+
+    resources :issues, only: [:index, :show, :update] do
+      resources :notes, only: [:create], controller: 'issue_notes'
+    end
+
+    resources :subscription_plans
+
+    resources :schedule, only: [:index] do
+      collection do
+        get ':date', action: :day, as: :day
+        post ':date/optimize', action: :optimize_route, as: :optimize_route
+      end
+    end
+
+    resources :routes, only: [:index] do
+      collection do
+        post :optimize
+      end
+    end
+
+    resources :notification_templates, only: [:index, :edit, :update]
+    resources :time_windows
+    resource :settings, only: [:show, :update]
+    resources :audit_logs, only: [:index]
+  end
+
   namespace :api do
     namespace :v1 do
       # Authentication (existing)
@@ -51,6 +93,10 @@ Rails.application.routes.draw do
       namespace :billing do
         resources :invoices, only: [:index, :show]
       end
+
+      # Device tokens for push notifications
+      post 'device-tokens', to: 'device_tokens#create'
+      delete 'device-tokens', to: 'device_tokens#destroy'
     end
   end
   

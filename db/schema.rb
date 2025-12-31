@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_29_184940) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_31_000735) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -26,8 +26,38 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_29_184940) do
     t.boolean "is_default", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "latitude", precision: 10, scale: 6
+    t.decimal "longitude", precision: 10, scale: 6
+    t.index ["latitude", "longitude"], name: "index_addresses_on_latitude_and_longitude"
     t.index ["user_id", "is_default"], name: "index_addresses_on_user_id_and_is_default"
     t.index ["user_id"], name: "index_addresses_on_user_id"
+  end
+
+  create_table "audit_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id"
+    t.string "action", null: false
+    t.string "resource_type"
+    t.uuid "resource_id"
+    t.jsonb "metadata", default: {}
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["action"], name: "index_audit_logs_on_action"
+    t.index ["created_at"], name: "index_audit_logs_on_created_at"
+    t.index ["resource_type", "resource_id"], name: "index_audit_logs_on_resource_type_and_resource_id"
+    t.index ["user_id"], name: "index_audit_logs_on_user_id"
+  end
+
+  create_table "device_tokens", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "token", null: false
+    t.string "platform", null: false
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_device_tokens_on_token", unique: true
+    t.index ["user_id", "platform"], name: "index_device_tokens_on_user_id_and_platform"
   end
 
   create_table "invoices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -66,6 +96,22 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_29_184940) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_laundry_preferences_on_user_id", unique: true
+  end
+
+  create_table "notification_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "order_id"
+    t.string "channel", null: false
+    t.string "notification_type", null: false
+    t.string "status", null: false
+    t.text "message"
+    t.jsonb "metadata"
+    t.string "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["channel", "status"], name: "index_notification_logs_on_channel_and_status"
+    t.index ["order_id"], name: "index_notification_logs_on_order_id"
+    t.index ["user_id"], name: "index_notification_logs_on_user_id"
   end
 
   create_table "notifications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -155,6 +201,16 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_29_184940) do
     t.index ["user_id"], name: "index_payment_methods_on_user_id"
   end
 
+  create_table "settings", force: :cascade do |t|
+    t.string "key", null: false
+    t.text "value"
+    t.string "description"
+    t.string "setting_type", default: "string"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_settings_on_key", unique: true
+  end
+
   create_table "subscription_plans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.integer "bags_per_month", null: false
@@ -210,10 +266,14 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_29_184940) do
   end
 
   add_foreign_key "addresses", "users"
+  add_foreign_key "audit_logs", "users"
+  add_foreign_key "device_tokens", "users"
   add_foreign_key "invoices", "orders"
   add_foreign_key "invoices", "subscriptions"
   add_foreign_key "invoices", "users"
   add_foreign_key "laundry_preferences", "users"
+  add_foreign_key "notification_logs", "orders"
+  add_foreign_key "notification_logs", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "order_issues", "orders"
   add_foreign_key "order_issues", "users"

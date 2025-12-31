@@ -1,0 +1,108 @@
+<div>
+  <div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900">Issues</h1>
+      <p class="mt-2 text-sm text-gray-700">Track and resolve customer issues</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="mt-6 bg-white shadow rounded-lg p-4">
+    <%= form_with url: admin_issues_path, method: :get, class: "grid grid-cols-1 gap-4 sm:grid-cols-3" do %>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Status</label>
+        <select name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+          <option value="">All Statuses</option>
+          <% OrderIssue.statuses.keys.each do |status| %>
+            <option value="<%= status %>" <%= 'selected' if params[:status] == status %>><%= status.humanize %></option>
+          <% end %>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Issue Type</label>
+        <select name="issue_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+          <option value="">All Types</option>
+          <% OrderIssue.issue_types.keys.each do |type| %>
+            <option value="<%= type %>" <%= 'selected' if params[:issue_type] == type %>><%= type.humanize %></option>
+          <% end %>
+        </select>
+      </div>
+
+      <div class="flex items-end">
+        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent bg-[#10253F] py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654]">
+          Filter
+        </button>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Issues Table -->
+  <div class="mt-6 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+    <table class="min-w-full divide-y divide-gray-300">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Type</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Description</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Customer</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Order</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Reported</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+            <span class="sr-only">Actions</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 bg-white">
+        <% @issues.each do |issue| %>
+          <tr>
+            <td class="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= issue_type_badge_class(issue.issue_type) %>">
+                <%= issue.issue_type.humanize %>
+              </span>
+            </td>
+            <td class="px-3 py-4 text-sm text-gray-900 max-w-xs truncate">
+              <%= truncate(issue.description, length: 60) %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+              <%= link_to issue.user.full_name, admin_customer_path(issue.user), class: 'text-[#10253F] hover:underline' %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm">
+              <%= link_to issue.order.formatted_order_number, admin_order_path(issue.order), class: 'text-[#10253F] hover:underline' %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm">
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= issue_status_badge_class(issue.status) %>">
+                <%= issue.status.humanize %>
+              </span>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+              <%= time_ago_in_words(issue.created_at) %> ago
+            </td>
+            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+              <%= link_to 'View', admin_issue_path(issue), class: 'text-[#10253F] hover:text-[#1a3654]' %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @issues.empty? %>
+          <tr>
+            <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">
+              No issues found
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <% if @issues.respond_to?(:total_pages) && @issues.total_pages > 1 %>
+    <div class="mt-4 flex items-center justify-between">
+      <div class="text-sm text-gray-700">
+        Showing <%= @issues.offset_value + 1 %> to <%= [@issues.offset_value + @issues.length, @issues.total_count].min %> of <%= @issues.total_count %> issues
+      </div>
+      <div>
+        <%= paginate @issues %>
+      </div>
+    </div>
+  <% end %>
+</div>

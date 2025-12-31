@@ -11,9 +11,10 @@ class User < ApplicationRecord
   has_many :orders, dependent: :destroy
   has_many :payment_methods, dependent: :destroy
   has_many :notifications, dependent: :destroy
-  has_many :payment_methods, dependent: :destroy
   has_many :subscriptions, dependent: :destroy
   has_many :invoices, dependent: :destroy
+  has_many :device_tokens, dependent: :destroy
+  has_many :notification_logs, dependent: :destroy
   has_one :laundry_preference, dependent: :destroy
   has_one :subscription, dependent: :destroy
   

@@ -31,9 +31,13 @@ module LaundryLegendsApi
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    # Only loads a smaller set of middleware suitable for API only apps.
-    # Middleware like session, flash, cookies can be added back manually.
-    # Skip views, helpers and assets when generating a new resource.
-    config.api_only = true
+    # Enable full Rails stack for admin interface while keeping API functionality
+    # Removed api_only = true to support admin views with sessions/cookies
+
+    # Configure session store for admin authentication
+    config.session_store :cookie_store, key: '_laundry_legends_admin_session'
+
+    # Use Active Job with Sidekiq for background processing
+    config.active_job.queue_adapter = :sidekiq
   end
 end

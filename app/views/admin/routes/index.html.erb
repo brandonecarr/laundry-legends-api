@@ -1,0 +1,61 @@
+<div>
+  <div class="sm:flex sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900">Route Optimization</h1>
+      <p class="mt-1 text-sm text-gray-500"><%= @date.strftime('%A, %B %d, %Y') %></p>
+    </div>
+    <div class="mt-4 sm:mt-0 flex items-center space-x-4">
+      <input type="date" value="<%= @date %>" onchange="window.location.href='/admin/routes?date=' + this.value" class="rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+      <%= button_to 'Optimize Route', optimize_admin_routes_path(date: @date), method: :post, class: 'inline-flex items-center rounded-md border border-transparent bg-[#10253F] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654]' %>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- Orders List -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg font-medium leading-6 text-gray-900">Today's Stops (<%= @orders.count %>)</h3>
+      </div>
+      <ul role="list" class="divide-y divide-gray-200">
+        <% @orders.each_with_index do |order, index| %>
+          <li class="px-4 py-4 sm:px-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 w-8 h-8 rounded-full bg-[#10253F] flex items-center justify-center">
+                <span class="text-sm font-medium text-white"><%= index + 1 %></span>
+              </div>
+              <div class="ml-4 flex-1">
+                <p class="text-sm font-medium text-gray-900">
+                  <%= order.formatted_order_number %> - <%= order.user.full_name %>
+                </p>
+                <p class="text-sm text-gray-500"><%= order.address&.formatted_address || 'No address' %></p>
+                <p class="text-xs text-gray-400"><%= order.pickup_time_window&.label %></p>
+              </div>
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= order_status_badge_class(order.status) %>">
+                <%= order.status.humanize %>
+              </span>
+            </div>
+          </li>
+        <% end %>
+        <% if @orders.empty? %>
+          <li class="px-4 py-8 text-center text-sm text-gray-500">
+            No pickups scheduled for this day
+          </li>
+        <% end %>
+      </ul>
+    </div>
+
+    <!-- Map Placeholder -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Route Map</h3>
+      <div class="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div class="text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
+          <p class="mt-2 text-sm text-gray-500">Map integration coming soon</p>
+          <p class="text-xs text-gray-400">Configure MAPBOX_ACCESS_TOKEN to enable</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

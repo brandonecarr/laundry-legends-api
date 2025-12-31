@@ -1,0 +1,102 @@
+<div>
+  <div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900">Audit Logs</h1>
+      <p class="mt-2 text-sm text-gray-700">Track admin actions and system changes</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="mt-4 bg-white shadow rounded-lg p-4">
+    <%= form_with url: admin_audit_logs_path, method: :get, class: "flex flex-wrap gap-4 items-end" do %>
+      <div>
+        <label class="block text-xs font-medium text-gray-700">Action Type</label>
+        <select name="action_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+          <option value="">All Actions</option>
+          <% @action_types.each do |action| %>
+            <option value="<%= action %>" <%= params[:action_type] == action ? 'selected' : '' %>><%= action.humanize %></option>
+          <% end %>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700">From Date</label>
+        <input type="date" name="date_from" value="<%= params[:date_from] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700">To Date</label>
+        <input type="date" name="date_to" value="<%= params[:date_to] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+      </div>
+      <div>
+        <button type="submit" class="inline-flex items-center rounded-md border border-transparent bg-[#10253F] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654]">
+          Filter
+        </button>
+        <%= link_to 'Clear', admin_audit_logs_path, class: 'ml-2 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50' %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Logs Table -->
+  <div class="mt-6 bg-white shadow rounded-lg overflow-hidden">
+    <% if @audit_logs.any? %>
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Address</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @audit_logs.each do |log| %>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= log.created_at.strftime('%b %d, %Y %I:%M %p') %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% if log.user %>
+                  <div class="text-sm font-medium text-gray-900"><%= log.user.full_name %></div>
+                  <div class="text-xs text-gray-500"><%= log.user.email %></div>
+                <% else %>
+                  <span class="text-sm text-gray-500">System</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= action_badge_class(log.action) %>">
+                  <%= log.action.humanize %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <% if log.resource_type.present? %>
+                  <%= log.resource_type %> #<%= log.resource_id.to_s[0..7] %>...
+                <% else %>
+                  -
+                <% end %>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-500">
+                <%= log.action_description %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= log.ip_address || '-' %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <div class="px-6 py-4 border-t border-gray-200">
+        <%== pagy_nav(@pagy) if @pagy.pages > 1 rescue nil %>
+      </div>
+    <% else %>
+      <div class="p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No audit logs yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Actions will appear here as they occur.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

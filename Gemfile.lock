@@ -80,6 +80,10 @@ GEM
       mutex_m
       securerandom (>= 0.3)
       tzinfo (~> 2.0)
+    apnotic (1.8.0)
+      base64
+      connection_pool (>= 2, < 4)
+      net-http2 (>= 0.18.3, < 2)
     base64 (0.3.0)
     bcrypt (3.1.20)
     benchmark (0.5.0)
@@ -114,8 +118,13 @@ GEM
       net-http (~> 0.5)
     globalid (1.3.0)
       activesupport (>= 6.1)
+    http-2 (1.1.1)
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
+    importmap-rails (2.2.2)
+      actionpack (>= 6.0.0)
+      activesupport (>= 6.0.0)
+      railties (>= 6.0.0)
     io-console (0.8.2)
     irb (1.16.0)
       pp (>= 0.6.0)
@@ -154,6 +163,8 @@ GEM
     mutex_m (0.3.0)
     net-http (0.9.1)
       uri (>= 0.11.1)
+    net-http2 (0.19.0)
+      http-2 (>= 1.0)
     net-imap (0.6.2)
       date
       net-protocol
@@ -260,11 +271,29 @@ GEM
       logger (>= 1.7.0)
       rack (>= 3.2.0)
       redis-client (>= 0.26.0)
+    sprockets (4.2.2)
+      concurrent-ruby (~> 1.0)
+      logger
+      rack (>= 2.2.4, < 4)
+    sprockets-rails (3.5.2)
+      actionpack (>= 6.1)
+      activesupport (>= 6.1)
+      sprockets (>= 3.0.0)
+    stimulus-rails (1.3.4)
+      railties (>= 6.0.0)
     stringio (3.2.0)
     stripe (18.1.0)
+    tailwindcss-rails (4.4.0)
+      railties (>= 7.0.0)
+      tailwindcss-ruby (~> 4.0)
+    tailwindcss-ruby (4.1.18-arm64-darwin)
+    tailwindcss-ruby (4.1.18-x86_64-linux-gnu)
     thor (1.4.0)
     timeout (0.6.0)
     tsort (0.2.0)
+    turbo-rails (2.0.20)
+      actionpack (>= 7.1.0)
+      railties (>= 7.1.0)
     twilio-ruby (7.9.0)
       faraday (>= 0.9, < 3.0)
       jwt (>= 1.5, < 4.0)
@@ -283,11 +312,14 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  apnotic
   bcrypt (~> 3.1.7)
   bootsnap
   debug
   factory_bot_rails
   faker
+  faraday
+  importmap-rails
   jwt
   kaminari
   pg (~> 1.1)
@@ -298,7 +330,11 @@ DEPENDENCIES
   rspec-rails
   sendgrid-ruby
   sidekiq
+  sprockets-rails
+  stimulus-rails
   stripe
+  tailwindcss-rails
+  turbo-rails
   twilio-ruby
   tzinfo-data
 

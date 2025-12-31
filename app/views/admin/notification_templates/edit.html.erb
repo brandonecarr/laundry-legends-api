@@ -1,0 +1,32 @@
+<div>
+  <div class="mb-6">
+    <%= link_to '&larr; Back to Templates'.html_safe, admin_notification_templates_path, class: 'text-sm text-gray-500 hover:text-gray-700' %>
+  </div>
+
+  <h1 class="text-2xl font-semibold text-gray-900">Edit Template: <%= @template[:title] %></h1>
+
+  <div class="mt-8 max-w-2xl">
+    <%= form_with url: admin_notification_template_path(@template[:key]), method: :patch, class: "space-y-6" do %>
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Push Notification Body</label>
+            <textarea name="template[push_body]" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm"><%= @template[:push_body] %></textarea>
+            <p class="mt-1 text-xs text-gray-500">Available variables: {customer_name}, {order_number}, {bag_count}, {estimated_time}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">SMS Body</label>
+            <textarea name="template[sms_body]" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm"><%= @template[:sms_body] %></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <%= link_to 'Cancel', admin_notification_templates_path, class: 'rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50' %>
+        <button type="submit" class="rounded-md border border-transparent bg-[#10253F] py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654]">
+          Save Template
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div>

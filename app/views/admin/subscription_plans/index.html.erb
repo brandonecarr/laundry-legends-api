@@ -1,0 +1,76 @@
+<div>
+  <div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900">Subscription Plans</h1>
+      <p class="mt-2 text-sm text-gray-700">Manage subscription plans for your customers</p>
+    </div>
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+      <%= link_to 'Add Plan', new_admin_subscription_plan_path, class: 'inline-flex items-center rounded-md border border-transparent bg-[#10253F] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654]' %>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <% @subscription_plans.each do |plan| %>
+      <div class="bg-white overflow-hidden shadow rounded-lg <%= 'opacity-60' unless plan.is_active %>">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium text-gray-900"><%= plan.name %></h3>
+            <% unless plan.is_active %>
+              <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                Inactive
+              </span>
+            <% end %>
+          </div>
+
+          <div class="mt-4">
+            <p class="text-3xl font-bold text-gray-900"><%= number_to_currency(plan.price_cents / 100.0) %><span class="text-base font-normal text-gray-500">/month</span></p>
+          </div>
+
+          <ul class="mt-4 space-y-2">
+            <li class="flex items-center text-sm text-gray-600">
+              <svg class="mr-2 h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <%= plan.bags_per_month %> bags per month
+            </li>
+            <% if plan.price_per_bag_cents %>
+              <li class="flex items-center text-sm text-gray-600">
+                <svg class="mr-2 h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <%= number_to_currency(plan.price_per_bag_cents / 100.0) %> per additional bag
+              </li>
+            <% end %>
+          </ul>
+
+          <% if plan.description.present? %>
+            <p class="mt-4 text-sm text-gray-500"><%= plan.description %></p>
+          <% end %>
+
+          <div class="mt-6 flex items-center justify-between">
+            <span class="text-sm text-gray-500">
+              <%= Subscription.where(subscription_plan: plan, status: :active).count %> active subscribers
+            </span>
+            <div class="flex space-x-2">
+              <%= link_to 'View', admin_subscription_plan_path(plan), class: 'text-sm font-medium text-[#10253F] hover:text-[#1a3654]' %>
+              <%= link_to 'Edit', edit_admin_subscription_plan_path(plan), class: 'text-sm font-medium text-gray-600 hover:text-gray-900' %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @subscription_plans.empty? %>
+    <div class="mt-6 text-center py-12 bg-white shadow rounded-lg">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No subscription plans</h3>
+      <p class="mt-1 text-sm text-gray-500">Get started by creating a new subscription plan.</p>
+      <div class="mt-6">
+        <%= link_to 'Add Plan', new_admin_subscription_plan_path, class: 'inline-flex items-center rounded-md border border-transparent bg-[#10253F] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654]' %>
+      </div>
+    </div>
+  <% end %>
+</div>

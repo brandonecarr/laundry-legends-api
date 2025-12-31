@@ -1,0 +1,134 @@
+<div>
+  <div class="mb-6">
+    <%= link_to '&larr; Back to Issues'.html_safe, admin_issues_path, class: 'text-sm text-gray-500 hover:text-gray-700' %>
+  </div>
+
+  <div class="sm:flex sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900">Issue Details</h1>
+      <p class="mt-1 text-sm text-gray-500">Reported <%= time_ago_in_words(@issue.created_at) %> ago</p>
+    </div>
+    <div class="mt-4 sm:mt-0">
+      <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium <%= issue_status_badge_class(@issue.status) %>">
+        <%= @issue.status.humanize %>
+      </span>
+    </div>
+  </div>
+
+  <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Issue Details -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-medium <%= issue_type_badge_class(@issue.issue_type) %>">
+            <%= @issue.issue_type.humanize %>
+          </span>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Description</h3>
+          <p class="mt-2 text-sm text-gray-900"><%= @issue.description %></p>
+        </div>
+      </div>
+
+      <!-- Update Status Form -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Update Issue</h2>
+        <%= form_with model: @issue, url: admin_issue_path(@issue), method: :patch, class: "space-y-4" do |f| %>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Status</label>
+            <%= f.select :status, OrderIssue.statuses.keys.map { |s| [s.humanize, s] }, {}, class: 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm' %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Resolution Notes</label>
+            <%= f.text_area :resolution_notes, rows: 4, class: 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm', placeholder: 'Add notes about how this issue was resolved...' %>
+          </div>
+
+          <div class="flex justify-end">
+            <%= f.submit 'Update Issue', class: 'rounded-md border border-transparent bg-[#10253F] py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654] cursor-pointer' %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Resolution Info (if resolved) -->
+      <% if @issue.resolved_at %>
+        <div class="bg-green-50 shadow rounded-lg p-6">
+          <h2 class="text-lg font-medium text-green-900 mb-4">Resolution</h2>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-sm font-medium text-green-700">Resolved At</dt>
+              <dd class="mt-1 text-sm text-green-900"><%= @issue.resolved_at.strftime('%B %d, %Y at %I:%M %p') %></dd>
+            </div>
+            <% if @issue.resolved_by %>
+              <div>
+                <dt class="text-sm font-medium text-green-700">Resolved By</dt>
+                <dd class="mt-1 text-sm text-green-900"><%= @issue.resolved_by.full_name %></dd>
+              </div>
+            <% end %>
+            <% if @issue.resolution_notes.present? %>
+              <div>
+                <dt class="text-sm font-medium text-green-700">Resolution Notes</dt>
+                <dd class="mt-1 text-sm text-green-900"><%= @issue.resolution_notes %></dd>
+              </div>
+            <% end %>
+          </dl>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+      <!-- Customer Info -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Customer</h3>
+        <div class="flex items-center">
+          <div class="h-10 w-10 rounded-full bg-[#10253F] flex items-center justify-center">
+            <span class="text-sm font-medium text-white"><%= @customer.first_name[0] %><%= @customer.last_name[0] %></span>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-gray-900"><%= @customer.full_name %></p>
+            <p class="text-sm text-gray-500"><%= @customer.email %></p>
+          </div>
+        </div>
+        <div class="mt-4">
+          <%= link_to 'View Customer', admin_customer_path(@customer), class: 'text-sm font-medium text-[#10253F] hover:text-[#1a3654]' %>
+        </div>
+      </div>
+
+      <!-- Order Info -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Related Order</h3>
+        <dl class="space-y-3">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Order Number</dt>
+            <dd class="mt-1">
+              <%= link_to @order.formatted_order_number, admin_order_path(@order), class: 'text-sm font-medium text-[#10253F] hover:underline' %>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Order Status</dt>
+            <dd class="mt-1">
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= order_status_badge_class(@order.status) %>">
+                <%= @order.status.humanize %>
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Pickup Date</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @order.pickup_date.strftime('%B %d, %Y') %></dd>
+          </div>
+          <% if @order.total_cents %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Order Total</dt>
+              <dd class="mt-1 text-sm text-gray-900"><%= number_to_currency(@order.total_cents / 100.0) %></dd>
+            </div>
+          <% end %>
+        </dl>
+        <div class="mt-4">
+          <%= link_to 'View Order', admin_order_path(@order), class: 'text-sm font-medium text-[#10253F] hover:text-[#1a3654]' %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

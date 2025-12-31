@@ -1,0 +1,131 @@
+<div>
+  <div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900">Orders</h1>
+      <p class="mt-2 text-sm text-gray-700">Manage all laundry orders</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="mt-6 bg-white shadow rounded-lg p-4">
+    <%= form_with url: admin_orders_path, method: :get, class: "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5" do %>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Search</label>
+        <input type="text" name="search" value="<%= params[:search] %>" placeholder="Order #, customer name, email..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Status</label>
+        <select name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+          <option value="">All Statuses</option>
+          <% Order.statuses.keys.each do |status| %>
+            <option value="<%= status %>" <%= 'selected' if params[:status] == status %>><%= status.humanize %></option>
+          <% end %>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Order Type</label>
+        <select name="order_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+          <option value="">All Types</option>
+          <option value="subscription" <%= 'selected' if params[:order_type] == 'subscription' %>>Subscription</option>
+          <option value="one_time" <%= 'selected' if params[:order_type] == 'one_time' %>>One-Time</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Pickup Date From</label>
+        <input type="date" name="date_from" value="<%= params[:date_from] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+      </div>
+
+      <div class="flex items-end">
+        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent bg-[#10253F] py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654] focus:outline-none focus:ring-2 focus:ring-[#10253F] focus:ring-offset-2">
+          Filter
+        </button>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="mt-6 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+    <table class="min-w-full divide-y divide-gray-300">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Order #</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Customer</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Pickup</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Delivery</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Total</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+            <span class="sr-only">Actions</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 bg-white">
+        <% @orders.each do |order| %>
+          <tr>
+            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-[#10253F] sm:pl-6">
+              <%= link_to order.formatted_order_number, admin_order_path(order), class: 'hover:underline' %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+              <%= order.user.full_name %><br>
+              <span class="text-gray-500"><%= order.user.email %></span>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm">
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= order_status_badge_class(order.status) %>">
+                <%= order.status.humanize %>
+              </span>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+              <%= order.order_type.humanize %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+              <%= order.pickup_date.strftime('%b %d, %Y') %><br>
+              <span class="text-xs"><%= order.pickup_time_window&.label %></span>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+              <% if order.delivery_date %>
+                <%= order.delivery_date.strftime('%b %d, %Y') %><br>
+                <span class="text-xs"><%= order.delivery_time_window&.label %></span>
+              <% else %>
+                -
+              <% end %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+              <% if order.total_cents %>
+                <%= number_to_currency(order.total_cents / 100.0) %>
+              <% else %>
+                -
+              <% end %>
+            </td>
+            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+              <%= link_to 'View', admin_order_path(order), class: 'text-[#10253F] hover:text-[#1a3654]' %>
+              <%= link_to 'Edit', edit_admin_order_path(order), class: 'ml-4 text-gray-600 hover:text-gray-900' %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @orders.empty? %>
+          <tr>
+            <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500">
+              No orders found
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <% if @orders.respond_to?(:total_pages) && @orders.total_pages > 1 %>
+    <div class="mt-4 flex items-center justify-between">
+      <div class="text-sm text-gray-700">
+        Showing <%= @orders.offset_value + 1 %> to <%= [@orders.offset_value + @orders.length, @orders.total_count].min %> of <%= @orders.total_count %> orders
+      </div>
+      <div>
+        <%= paginate @orders %>
+      </div>
+    </div>
+  <% end %>
+</div>

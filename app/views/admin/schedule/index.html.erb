@@ -1,0 +1,77 @@
+<div>
+  <div class="sm:flex sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900">Schedule</h1>
+      <p class="mt-1 text-sm text-gray-500">Week of <%= @week_start.strftime('%B %d') %> - <%= @week_end.strftime('%B %d, %Y') %></p>
+    </div>
+    <div class="mt-4 sm:mt-0 flex items-center space-x-4">
+      <%= link_to admin_schedule_index_path(date: @week_start - 7.days), class: 'inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50' do %>
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      <% end %>
+      <%= link_to 'Today', admin_schedule_index_path, class: 'inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50' %>
+      <%= link_to admin_schedule_index_path(date: @week_start + 7.days), class: 'inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50' do %>
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Week Calendar -->
+  <div class="mt-6 grid grid-cols-7 gap-4">
+    <% (@week_start..@week_end).each do |date| %>
+      <% orders = @orders_by_date[date] || [] %>
+      <div class="bg-white shadow rounded-lg overflow-hidden <%= 'ring-2 ring-[#10253F]' if date == Date.today %>">
+        <div class="px-4 py-3 border-b border-gray-200 <%= 'bg-[#10253F] text-white' if date == Date.today %>">
+          <p class="text-xs font-medium <%= date == Date.today ? 'text-gray-200' : 'text-gray-500' %>"><%= date.strftime('%A') %></p>
+          <p class="text-lg font-semibold <%= date == Date.today ? 'text-white' : 'text-gray-900' %>"><%= date.strftime('%b %d') %></p>
+        </div>
+        <div class="p-4">
+          <% if orders.any? %>
+            <p class="text-sm font-medium text-gray-900 mb-2"><%= orders.count %> pickups</p>
+            <div class="space-y-2">
+              <% orders.first(3).each do |order| %>
+                <div class="text-xs">
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium <%= order_status_badge_class(order.status) %>">
+                    <%= order.pickup_time_window&.label&.split(' ').first || 'TBD' %>
+                  </span>
+                  <p class="mt-1 text-gray-600 truncate"><%= order.user.full_name %></p>
+                </div>
+              <% end %>
+              <% if orders.count > 3 %>
+                <p class="text-xs text-gray-500">+ <%= orders.count - 3 %> more</p>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-sm text-gray-500">No pickups</p>
+          <% end %>
+          <div class="mt-4">
+            <%= link_to 'View Day', day_admin_schedule_index_path(date: date), class: 'text-xs font-medium text-[#10253F] hover:text-[#1a3654]' %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-4">
+    <div class="bg-white shadow rounded-lg p-4">
+      <p class="text-sm font-medium text-gray-500">Total This Week</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900"><%= @weekly_orders.count %></p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+      <p class="text-sm font-medium text-gray-500">Scheduled</p>
+      <p class="mt-1 text-2xl font-semibold text-yellow-600"><%= @weekly_orders.where(status: :scheduled).count %></p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+      <p class="text-sm font-medium text-gray-500">In Progress</p>
+      <p class="mt-1 text-2xl font-semibold text-blue-600"><%= @weekly_orders.where(status: [:picked_up, :in_cleaning, :quality_check]).count %></p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+      <p class="text-sm font-medium text-gray-500">Out for Delivery</p>
+      <p class="mt-1 text-2xl font-semibold text-purple-600"><%= @weekly_orders.where(status: :out_for_delivery).count %></p>
+    </div>
+  </div>
+</div>

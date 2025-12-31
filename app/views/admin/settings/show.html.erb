@@ -1,0 +1,177 @@
+<div>
+  <h1 class="text-2xl font-semibold text-gray-900">Settings</h1>
+  <p class="mt-1 text-sm text-gray-500">Manage your business settings and configurations</p>
+
+  <%= form_with url: admin_settings_path, method: :patch, class: "mt-8 space-y-6 max-w-2xl" do |f| %>
+    <!-- Business Info -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Business Information</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-700">Business Name</label>
+          <input type="text" name="settings[facility_name]" value="<%= @settings['facility_name'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" name="settings[business_email]" value="<%= @settings['business_email'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Phone</label>
+          <input type="text" name="settings[business_phone]" value="<%= @settings['business_phone'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+      </div>
+    </div>
+
+    <!-- Facility Location -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Facility Location</h2>
+      <p class="text-sm text-gray-500 mb-4">This is used as the starting point for route optimization.</p>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-700">Street Address</label>
+          <input type="text" name="settings[facility_address]" value="<%= @settings['facility_address'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">City</label>
+          <input type="text" name="settings[facility_city]" value="<%= @settings['facility_city'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">State</label>
+          <input type="text" name="settings[facility_state]" value="<%= @settings['facility_state'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">ZIP Code</label>
+          <input type="text" name="settings[facility_zip]" value="<%= @settings['facility_zip'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Latitude</label>
+          <input type="text" name="settings[facility_latitude]" value="<%= @settings['facility_latitude'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Longitude</label>
+          <input type="text" name="settings[facility_longitude]" value="<%= @settings['facility_longitude'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing Settings -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Pricing</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Price Per Bag (cents)</label>
+          <input type="number" name="settings[price_per_bag_cents]" value="<%= @settings['price_per_bag_cents'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+          <p class="mt-1 text-xs text-gray-500">$<%= @settings['price_per_bag_cents'][:value].to_f / 100.0 %> per bag</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Tax Rate</label>
+          <input type="text" name="settings[tax_rate]" value="<%= @settings['tax_rate'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+          <p class="mt-1 text-xs text-gray-500">e.g., 0.08 for 8%</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Operations Settings -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Operations</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Max Bags Per Order</label>
+          <input type="number" name="settings[max_bags_per_order]" value="<%= @settings['max_bags_per_order'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Min Hours Before Pickup</label>
+          <input type="number" name="settings[min_hours_before_pickup]" value="<%= @settings['min_hours_before_pickup'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+          <p class="mt-1 text-xs text-gray-500">Minimum notice for scheduling</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Max Days Advance Booking</label>
+          <input type="number" name="settings[max_days_advance_booking]" value="<%= @settings['max_days_advance_booking'][:value] %>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm">
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Notifications</h2>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <label class="text-sm font-medium text-gray-700">Enable Notifications</label>
+            <p class="text-xs text-gray-500">Send push and SMS notifications to customers</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="hidden" name="settings[notifications_enabled]" value="false">
+            <input type="checkbox" name="settings[notifications_enabled]" value="true" <%= @settings['notifications_enabled'][:value] ? 'checked' : '' %> class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10253F]"></div>
+          </label>
+        </div>
+        <div class="flex items-center justify-between">
+          <div>
+            <label class="text-sm font-medium text-gray-700">Auto-notify on Status Change</label>
+            <p class="text-xs text-gray-500">Default notify checkbox to checked when changing order status</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="hidden" name="settings[auto_notify_on_status_change]" value="false">
+            <input type="checkbox" name="settings[auto_notify_on_status_change]" value="true" <%= @settings['auto_notify_on_status_change'][:value] ? 'checked' : '' %> class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10253F]"></div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Keys (read-only status) -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Integrations</h2>
+      <p class="text-sm text-gray-500 mb-4">API keys are configured via environment variables for security.</p>
+      <dl class="space-y-3">
+        <div class="flex items-center justify-between">
+          <dt class="text-sm font-medium text-gray-500">Mapbox</dt>
+          <dd class="text-sm text-gray-900">
+            <% if MapboxConfig.configured? %>
+              <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Configured</span>
+            <% else %>
+              <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">Not configured</span>
+            <% end %>
+          </dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-sm font-medium text-gray-500">Twilio</dt>
+          <dd class="text-sm text-gray-900">
+            <% if TwilioConfig.configured? %>
+              <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Configured</span>
+            <% else %>
+              <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">Not configured</span>
+            <% end %>
+          </dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-sm font-medium text-gray-500">Apple Push Notifications</dt>
+          <dd class="text-sm text-gray-900">
+            <% if ApnsConfig.configured? %>
+              <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Configured</span>
+            <% else %>
+              <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">Not configured</span>
+            <% end %>
+          </dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-sm font-medium text-gray-500">Redis (Sidekiq)</dt>
+          <dd class="text-sm text-gray-900">
+            <% if ENV['REDIS_URL'].present? %>
+              <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Configured</span>
+            <% else %>
+              <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">Not configured</span>
+            <% end %>
+          </dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="flex justify-end">
+      <button type="submit" class="rounded-md border border-transparent bg-[#10253F] py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654]">
+        Save Settings
+      </button>
+    </div>
+  <% end %>
+</div>

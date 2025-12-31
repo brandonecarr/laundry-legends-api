@@ -1,0 +1,65 @@
+<%= form_with model: [:admin, subscription_plan], class: "space-y-6" do |f| %>
+  <% if subscription_plan.errors.any? %>
+    <div class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">There were errors with your submission</h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul role="list" class="list-disc space-y-1 pl-5">
+              <% subscription_plan.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="bg-white shadow rounded-lg p-6">
+    <h2 class="text-lg font-medium text-gray-900 mb-4">Plan Details</h2>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Plan Name</label>
+        <%= f.text_field :name, class: 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm', placeholder: 'e.g., Basic, Premium, Pro' %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Bags Per Month</label>
+        <%= f.number_field :bags_per_month, min: 1, class: 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm' %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Price (cents)</label>
+        <%= f.number_field :price_cents, min: 0, class: 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm' %>
+        <p class="mt-1 text-xs text-gray-500">Enter price in cents (e.g., 4999 = $49.99)</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Price Per Additional Bag (cents)</label>
+        <%= f.number_field :price_per_bag_cents, min: 0, class: 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm' %>
+        <p class="mt-1 text-xs text-gray-500">Optional: charge for bags over the monthly limit</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Status</label>
+        <div class="mt-2">
+          <label class="inline-flex items-center">
+            <%= f.check_box :is_active, class: 'rounded border-gray-300 text-[#10253F] focus:ring-[#10253F]' %>
+            <span class="ml-2 text-sm text-gray-700">Active (visible to customers)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="sm:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Description</label>
+        <%= f.text_area :description, rows: 3, class: 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#10253F] focus:ring-[#10253F] sm:text-sm', placeholder: 'Optional description for the plan...' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end space-x-3">
+    <%= link_to 'Cancel', admin_subscription_plans_path, class: 'rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50' %>
+    <%= f.submit class: 'rounded-md border border-transparent bg-[#10253F] py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#1a3654] cursor-pointer' %>
+  </div>
+<% end %>

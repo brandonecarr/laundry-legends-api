@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laundry Legends Admin</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+  <%= javascript_importmap_tags %>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="h-full">
+  <% if current_admin_user %>
+    <div class="min-h-full">
+      <!-- Sidebar -->
+      <div class="fixed inset-y-0 z-50 flex w-64 flex-col">
+        <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-[#10253F] px-6 pb-4">
+          <!-- Logo -->
+          <div class="flex h-16 shrink-0 items-center">
+            <span class="text-2xl font-bold text-white">Laundry Legends</span>
+          </div>
+
+          <!-- Navigation -->
+          <nav class="flex flex-1 flex-col">
+            <ul role="list" class="flex flex-1 flex-col gap-y-7">
+              <li>
+                <ul role="list" class="-mx-2 space-y-1">
+                  <%= render 'admin/shared/nav_link', path: admin_root_path, icon: 'home', label: 'Dashboard' %>
+                  <%= render 'admin/shared/nav_link', path: admin_orders_path, icon: 'shopping-bag', label: 'Orders' %>
+                  <%= render 'admin/shared/nav_link', path: admin_schedule_index_path, icon: 'calendar', label: 'Schedule' %>
+                  <%= render 'admin/shared/nav_link', path: admin_customers_path, icon: 'users', label: 'Customers' %>
+                  <%= render 'admin/shared/nav_link', path: admin_subscription_plans_path, icon: 'credit-card', label: 'Subscription Plans' %>
+                  <%= render 'admin/shared/nav_link', path: admin_issues_path, icon: 'exclamation-circle', label: 'Issues' %>
+                </ul>
+              </li>
+
+              <li class="mt-auto">
+                <ul role="list" class="-mx-2 space-y-1">
+                  <%= render 'admin/shared/nav_link', path: admin_settings_path, icon: 'cog', label: 'Settings' %>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="pl-64">
+        <!-- Top bar -->
+        <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+          <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div class="flex flex-1"></div>
+            <div class="flex items-center gap-x-4 lg:gap-x-6">
+              <div class="flex items-center gap-x-4">
+                <span class="text-sm font-medium text-gray-700">
+                  <%= current_admin_user.full_name %>
+                </span>
+                <%= button_to 'Logout', admin_logout_path, method: :delete, class: 'text-sm font-medium text-gray-500 hover:text-gray-700' %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Page content -->
+        <main class="py-10">
+          <div class="px-4 sm:px-6 lg:px-8">
+            <!-- Flash messages -->
+            <% if flash[:notice] %>
+              <div class="mb-4 rounded-md bg-green-50 p-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-green-800"><%= flash[:notice] %></p>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <% if flash[:alert] %>
+              <div class="mb-4 rounded-md bg-red-50 p-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-red-800"><%= flash[:alert] %></p>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <%= yield %>
+          </div>
+        </main>
+      </div>
+    </div>
+  <% else %>
+    <!-- Login page layout (no sidebar) -->
+    <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-md w-full space-y-8">
+        <!-- Flash messages for login page -->
+        <% if flash[:notice] %>
+          <div class="rounded-md bg-green-50 p-4">
+            <p class="text-sm font-medium text-green-800"><%= flash[:notice] %></p>
+          </div>
+        <% end %>
+
+        <% if flash[:alert] %>
+          <div class="rounded-md bg-red-50 p-4">
+            <p class="text-sm font-medium text-red-800"><%= flash[:alert] %></p>
+          </div>
+        <% end %>
+
+        <%= yield %>
+      </div>
+    </div>
+  <% end %>
+</body>
+</html>

@@ -31,6 +31,19 @@ gem "rack-cors"
 # Pagination
 gem "kaminari"
 
+# Admin Dashboard
+gem "tailwindcss-rails"
+gem "importmap-rails"
+gem "stimulus-rails"
+gem "turbo-rails"
+gem "sprockets-rails"
+
+# Push Notifications (APNs)
+gem "apnotic"
+
+# HTTP Client (for Mapbox API)
+gem "faraday"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 

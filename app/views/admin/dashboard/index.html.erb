@@ -1,0 +1,205 @@
+<div>
+  <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+  <p class="mt-1 text-sm text-gray-600">Overview of your laundry service operations</p>
+
+  <!-- Stats Grid -->
+  <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <!-- Orders Today -->
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Orders Today</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @stats[:orders_today] %></dd>
+    </div>
+
+    <!-- Pending Pickups -->
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Pending Pickups (Today)</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-[#10253F]"><%= @stats[:pending_pickups] %></dd>
+    </div>
+
+    <!-- In Progress -->
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">In Progress</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-blue-600"><%= @stats[:in_progress] %></dd>
+    </div>
+
+    <!-- Out for Delivery -->
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Out for Delivery</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-purple-600"><%= @stats[:out_for_delivery] %></dd>
+    </div>
+
+    <!-- Delivered Today -->
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Delivered Today</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-green-600"><%= @stats[:delivered_today] %></dd>
+    </div>
+
+    <!-- Open Issues -->
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Open Issues</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-red-600"><%= @stats[:open_issues] %></dd>
+    </div>
+
+    <!-- Active Subscriptions -->
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Active Subscriptions</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @stats[:active_subscriptions] %></dd>
+    </div>
+
+    <!-- Total Customers -->
+    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500">Total Customers</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @stats[:total_customers] %></dd>
+    </div>
+  </div>
+
+  <!-- Revenue Stats -->
+  <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
+    <div class="overflow-hidden rounded-lg bg-gradient-to-r from-[#10253F] to-[#1a3654] px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-200">Revenue Today</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-white"><%= number_to_currency(@stats[:revenue_today]) %></dd>
+    </div>
+    <div class="overflow-hidden rounded-lg bg-gradient-to-r from-[#10253F] to-[#1a3654] px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-200">Revenue This Week</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-white"><%= number_to_currency(@stats[:revenue_this_week]) %></dd>
+    </div>
+    <div class="overflow-hidden rounded-lg bg-gradient-to-r from-[#10253F] to-[#1a3654] px-4 py-5 shadow sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-200">Revenue This Month</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-white"><%= number_to_currency(@stats[:revenue_this_month]) %></dd>
+    </div>
+  </div>
+
+  <!-- Two Column Layout -->
+  <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- Recent Orders -->
+    <div class="overflow-hidden rounded-lg bg-white shadow">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">Recent Orders</h3>
+          <%= link_to 'View all', admin_orders_path, class: 'text-sm font-medium text-[#10253F] hover:text-[#1a3654]' %>
+        </div>
+      </div>
+      <ul role="list" class="divide-y divide-gray-200">
+        <% @recent_orders.each do |order| %>
+          <li class="px-4 py-4 sm:px-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <p class="truncate text-sm font-medium text-[#10253F]">
+                  <%= link_to order.formatted_order_number, admin_order_path(order), class: 'hover:underline' %>
+                </p>
+                <span class="ml-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= order_status_badge_class(order.status) %>">
+                  <%= order.status.humanize %>
+                </span>
+              </div>
+              <div class="text-sm text-gray-500">
+                <%= order.user.full_name %>
+              </div>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-sm text-gray-500">
+              <p>Pickup: <%= order.pickup_date.strftime('%b %d, %Y') %></p>
+              <p><%= time_ago_in_words(order.created_at) %> ago</p>
+            </div>
+          </li>
+        <% end %>
+        <% if @recent_orders.empty? %>
+          <li class="px-4 py-8 text-center text-sm text-gray-500">
+            No recent orders
+          </li>
+        <% end %>
+      </ul>
+    </div>
+
+    <!-- Open Issues -->
+    <div class="overflow-hidden rounded-lg bg-white shadow">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">Open Issues</h3>
+          <%= link_to 'View all', admin_issues_path, class: 'text-sm font-medium text-[#10253F] hover:text-[#1a3654]' %>
+        </div>
+      </div>
+      <ul role="list" class="divide-y divide-gray-200">
+        <% @recent_issues.each do |issue| %>
+          <li class="px-4 py-4 sm:px-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= issue_type_badge_class(issue.issue_type) %>">
+                  <%= issue.issue_type.humanize %>
+                </span>
+              </div>
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= issue_status_badge_class(issue.status) %>">
+                <%= issue.status.humanize %>
+              </span>
+            </div>
+            <div class="mt-2">
+              <p class="text-sm text-gray-900 line-clamp-2"><%= issue.description %></p>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-sm text-gray-500">
+              <p><%= issue.user.full_name %> - Order <%= issue.order.formatted_order_number %></p>
+              <p><%= time_ago_in_words(issue.created_at) %> ago</p>
+            </div>
+          </li>
+        <% end %>
+        <% if @recent_issues.empty? %>
+          <li class="px-4 py-8 text-center text-sm text-gray-500">
+            No open issues
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Today's Schedule -->
+  <div class="mt-8">
+    <div class="overflow-hidden rounded-lg bg-white shadow">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">Today's Pickup Schedule</h3>
+          <%= link_to 'View full schedule', admin_schedule_index_path, class: 'text-sm font-medium text-[#10253F] hover:text-[#1a3654]' %>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Window</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @todays_schedule.each do |order| %>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#10253F]">
+                  <%= link_to order.formatted_order_number, admin_order_path(order), class: 'hover:underline' %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= order.user.full_name %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= order.pickup_time_window&.label || 'N/A' %>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                  <%= order.address&.short_address || 'N/A' %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= order_status_badge_class(order.status) %>">
+                    <%= order.status.humanize %>
+                  </span>
+                </td>
+              </tr>
+            <% end %>
+            <% if @todays_schedule.empty? %>
+              <tr>
+                <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">
+                  No pickups scheduled for today
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

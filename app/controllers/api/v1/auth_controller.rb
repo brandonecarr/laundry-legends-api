@@ -9,12 +9,10 @@ module Api
       # POST /api/v1/auth/register
       def register
         user = User.new(user_params)
-
+        user.role = :customer
+        
         if user.save
-          # Laundry preferences are created automatically via User model callback
-
           tokens = generate_tokens(user)
-
           render json: {
             user: user_json(user),
             access_token: tokens[:access_token],
